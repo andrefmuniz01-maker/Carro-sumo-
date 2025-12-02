@@ -1,0 +1,151 @@
+const int ENA = 10;
+const int IN1 = 9;
+const int IN2 = 8;
+const int IN3 = 7;
+const int IN4 = 6;
+const int ENB = 5;
+
+const int SENSOR_LINHA_ESQ = 2;
+const int SENSOR_LINHA_DIR = 3;
+
+const int TRIG_PIN = 11;
+const int ECHO_PIN = 12;
+
+const int BUZZER_PIN = 4;
+
+const int DISTANCIA_ATAQUE = 40;
+const int VELOCIDADE_MAX = 255;
+const int VELOCIDADE_BUSCA = 120;
+const int VELOCIDADE_RE = 200;
+
+long duracao;
+int distancia;
+
+void setup() {
+  pinMode(ENA, OUTPUT);
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+  pinMode(ENB, OUTPUT);
+
+  pinMode(SENSOR_LINHA_ESQ, INPUT);
+  pinMode(SENSOR_LINHA_DIR, INPUT);
+
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+
+  pinMode(BUZZER_PIN, OUTPUT);
+
+  pararMotores();
+
+  for (int i = 0; i < 5; i++) {
+    digitalWrite(BUZZER_PIN, HIGH);
+    delay(100);
+    digitalWrite(BUZZER_PIN, LOW);
+    delay(900);
+  }
+
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(500);
+  digitalWrite(BUZZER_PIN, LOW);
+}
+
+void loop() {
+  bool linhaEsq = digitalRead(SENSOR_LINHA_ESQ); 
+  bool linhaDir = digitalRead(SENSOR_LINHA_DIR); 
+
+  distancia = lerUltrassonico();
+
+ 
+  if (linhaEsq == LOW || linhaDir == LOW) {
+    fugirDaBorda();
+  }
+ 
+  else if (distancia > 0 && distancia <= DISTANCIA_ATAQUE) {
+    atacarInimigo();
+  }
+  
+  else {
+    procurarInimigo();
+  }
+
+  delay(10);
+}
+
+int lerUltrassonico() {
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+
+  duracao = pulseIn(ECHO_PIN, HIGH, 30000);
+
+  if (duracao == 0) return 100;
+  return duracao * 0.034 / 2;
+}
+
+void fugirDaBorda() {
+  pararMotores();
+  delay(50);
+
+  moverTras(VELOCIDADE_RE);
+  delay(400);
+
+  girarEsquerda(VELOCIDADE_RE);
+  delay(300);
+}
+
+void atacarInimigo() {
+  moverFrente(VELOCIDADE_MAX);
+}
+
+void procurarInimigo() {
+  girarDireita(VELOCIDADE_BUSCA);
+}
+
+void pararMotores() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
+}
+
+void moverFrente(int velocidade) {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENA, velocidade);
+  analogWrite(ENB, velocidade);
+}
+
+void moverTras(int velocidade) {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  analogWrite(ENA, velocidade);
+  analogWrite(ENB, velocidade);
+}
+
+void girarDireita(int velocidade) {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  analogWrite(ENA, velocidade);
+  analogWrite(ENB, velocidade);
+}
+
+void girarEsquerda(int velocidade) {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENA, velocidade);
+  analogWrite(ENB, velocidade);
+}

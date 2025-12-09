@@ -1,0 +1,130 @@
+const int sensorEsq = 7;
+const int sensorDir = 8;
+
+const int trigPin = 4;
+const int echoPin = 2;
+
+const int IN1 = 5;
+const int IN2 = 6;
+const int IN3 = 9;
+const int IN4 = 10;
+
+const int DIST_MIN_CM = 5;
+const int DIST_MAX_CM = 80;
+
+const int TEMPO_RE = 250;
+const int TEMPO_GIRO_90 = 300;
+const int TEMPO_GIRO_180 = 550;
+
+const int PULSO_BUSCA = 80;
+const int PAUSA_BUSCA = 20;
+
+void setup() {
+  pinMode(sensorEsq, INPUT);
+  pinMode(sensorDir, INPUT);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+}
+
+void loop() {
+  int leituraEsq = digitalRead(sensorEsq);
+  int leituraDir = digitalRead(sensorDir);
+
+  bool esqPreto = (leituraEsq == LOW);
+  bool dirPreto = (leituraDir == LOW);
+
+  if (esqPreto || dirPreto) {
+    tratarBorda(esqPreto, dirPreto);
+    return;
+  }
+
+  long dist = lerDistanciaCM();
+
+  if (dist >= DIST_MIN_CM && dist <= DIST_MAX_CM) {
+    andarFrente();
+  } else {
+    girarBusca();
+  }
+
+  delay(20);
+}
+
+void tratarBorda(bool esqPreto, bool dirPreto) {
+  parar();
+  delay(80);
+
+  andarTras();
+  delay(TEMPO_RE);
+
+  parar();
+  delay(80);
+
+  if (esqPreto && !dirPreto) girarDireita(TEMPO_GIRO_90);
+  else if (!esqPreto && dirPreto) girarEsquerda(TEMPO_GIRO_90);
+  else girarDireita(TEMPO_GIRO_180);
+
+  parar();
+  delay(80);
+}
+
+long lerDistanciaCM() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  long duracao = pulseIn(echoPin, HIGH, 30000);
+  if (duracao == 0) return 999;
+
+  long distancia = duracao / 58;
+  if (distancia < 2) distancia = 2;
+  return distancia;
+}
+
+void parar() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+}
+
+void andarFrente() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+void andarTras() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+}
+
+void girarDireita(int tempoMs) {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  delay(tempoMs);
+}
+
+void girarEsquerda(int tempoMs) {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+  delay(tempoMs);
+}
+
+void girarBusca() {
+  girarDireita(PULSO_BUSCA);
+  parar();
+  delay(PAUSA_BUSCA);
+}

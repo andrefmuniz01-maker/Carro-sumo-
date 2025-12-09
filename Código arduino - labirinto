@@ -1,0 +1,92 @@
+const int sensorEsq = 7;
+const int sensorDir = 8;
+
+const int IN1 = 5;
+const int IN2 = 6;
+const int IN3 = 9;
+const int IN4 = 10;
+
+int ultimaDirecao = 0;
+
+void setup() {
+  pinMode(sensorEsq, INPUT);
+  pinMode(sensorDir, INPUT);
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+}
+
+void loop() {
+  int leituraEsq = digitalRead(sensorEsq);
+  int leituraDir = digitalRead(sensorDir);
+
+  bool esqNoPreto = (leituraEsq == LOW);
+  bool dirNoPreto = (leituraDir == LOW);
+
+  if (esqNoPreto && dirNoPreto) {
+    andarFrente();
+    ultimaDirecao = 0;
+  }
+  else if (esqNoPreto && !dirNoPreto) {
+    curvaEsquerda();
+    ultimaDirecao = -1;
+  }
+  else if (!esqNoPreto && dirNoPreto) {
+    curvaDireita();
+    ultimaDirecao = 1;
+  }
+  else {
+    if (ultimaDirecao < 0) girarEsquerdaLento();
+    else if (ultimaDirecao > 0) girarDireitaLento();
+    else parar();
+  }
+
+  delay(20);
+}
+
+void parar() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+}
+
+void andarFrente() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+void curvaEsquerda() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+void curvaDireita() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+}
+
+void girarEsquerdaLento() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+  delay(40);
+  parar();
+}
+
+void girarDireitaLento() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  delay(40);
+  parar();
+}
